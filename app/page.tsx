@@ -353,10 +353,14 @@ function TierCard({
         <div className="flex items-baseline gap-1.5">
           <input
             type="number"
-            min={1}
+            min={0}
             value={tier.winners}
-            onChange={e => onUpdate('winners', Math.max(1, parseInt(e.target.value) || 1))}
-            className={`bg-transparent p-0 font-extrabold text-primary focus:ring-0 w-28 text-center outline-none border-none ${
+            onChange={e => {
+              const v = parseInt(e.target.value) || 0
+              if (v <= 0) { onRemove(); return }
+              onUpdate('winners', v)
+            }}
+            className={`bg-transparent p-0 font-extrabold text-primary focus:ring-0 w-28 text-center outline-none border-none [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden ${
               tier.winners >= 1000 ? 'text-[28px]' : tier.winners >= 100 ? 'text-[36px]' : 'text-[44px]'
             }`}
             style={{ fontFamily: 'var(--font-sora)' }}
@@ -373,7 +377,7 @@ function TierCard({
             <span className="material-symbols-outlined text-[16px]">keyboard_arrow_up</span>
           </button>
           <button
-            onClick={() => onUpdate('winners', Math.max(1, tier.winners - 1))}
+            onClick={() => tier.winners <= 1 ? onRemove() : onUpdate('winners', tier.winners - 1)}
             className="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
           >
             <span className="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>

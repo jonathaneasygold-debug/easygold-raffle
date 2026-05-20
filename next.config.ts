@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Easy Gold Raffle — production config
 };
 
 export default nextConfig;

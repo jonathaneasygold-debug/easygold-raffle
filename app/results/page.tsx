@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { loadDrawResult, clearSession } from '@/lib/storage'
 import { saveDrawToSheets, hasSheetConnection } from '@/lib/sheets'
@@ -13,6 +13,8 @@ export default function ResultsPage() {
   const [saving,      setSaving]      = useState(false)
   const [saved,       setSaved]       = useState(false)
   const [saveError,   setSaveError]   = useState('')
+  const [pendingNav,  setPendingNav]  = useState<string>('/')
+  const origPushState = useRef<typeof window.history.pushState | null>(null)
 
   useEffect(() => {
     const r = loadDrawResult()
@@ -28,6 +30,38 @@ export default function ResultsPage() {
       }, 600)
     })()
   }, [router])
+
+  /* ── Navigation guard ────────────────────────────────── */
+  useEffect(() => {
+    if (saved || !hasSheetConnection()) return
+
+    origPushState.current = window.history.pushState.bind(window.history)
+
+    window.history.pushState = function(data: unknown, unused: string, url?: string | URL | null) {
+      const target = (url ?? '').toString()
+      if (!target.includes('/results')) {
+        setPendingNav(target || '/')
+        setShowModal(true)
+        return
+      }
+      origPushState.current!(data, unused, url)
+    }
+
+    const onBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+    window.addEventListener('beforeunload', onBeforeUnload)
+
+    return () => {
+      if (origPushState.current) window.history.pushState = origPushState.current
+      window.removeEventListener('beforeunload', onBeforeUnload)
+    }
+  }, [saved])
+
+  function releaseGuard() {
+    if (origPushState.current) {
+      window.history.pushState = origPushState.current
+      origPushState.current = null
+    }
+  }
 
   /* ── CSV Export ──────────────────────────────────────── */
   function exportCSV() {
@@ -56,9 +90,11 @@ export default function ResultsPage() {
       await saveDrawToSheets(result)
       setSaved(true)
       setShowModal(false)
+      releaseGuard()
+      clearSession()
+      router.push(pendingNav)
     } catch (e) {
       setSaveError((e as Error).message)
-    } finally {
       setSaving(false)
     }
   }
@@ -225,14 +261,7 @@ export default function ResultsPage() {
             </code>
           </p>
           <button
-            onClick={() => {
-              if (hasSheetConnection() && !saved) {
-                setShowModal(true)
-              } else {
-                clearSession()
-                router.push('/')
-              }
-            }}
+            onClick={() => router.push('/')}
             className="flex items-center gap-2 text-primary text-[13px] font-semibold hover:underline"
           >
             <span className="material-symbols-outlined text-[18px]">add_circle</span>
@@ -264,7 +293,7 @@ export default function ResultsPage() {
               )}
               <div className="flex gap-3 w-full mt-2">
                 <button
-                  onClick={() => { clearSession(); router.push('/') }}
+                  onClick={() => { releaseGuard(); clearSession(); router.push(pendingNav) }}
                   className="flex-1 py-3 rounded-xl border border-outline-variant text-on-surface-variant text-[13px] font-bold uppercase tracking-wider hover:border-error/50 hover:text-error transition-colors"
                 >
                   Discard

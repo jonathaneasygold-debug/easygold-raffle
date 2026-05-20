@@ -360,7 +360,7 @@ function TierCard({
               if (v <= 0) { onRemove(); return }
               onUpdate('winners', v)
             }}
-            className={`bg-transparent p-0 font-extrabold text-primary focus:ring-0 w-28 text-center outline-none border-none [appearance:textfield] [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden ${
+            className={`bg-transparent p-0 font-extrabold text-primary focus:ring-0 w-28 text-center outline-none border-none ${
               tier.winners >= 1000 ? 'text-[28px]' : tier.winners >= 100 ? 'text-[36px]' : 'text-[44px]'
             }`}
             style={{ fontFamily: 'var(--font-sora)' }}

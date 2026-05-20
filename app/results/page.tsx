@@ -157,63 +157,9 @@ export default function ResultsPage() {
                 )}
               </div>
 
-              {/* Hero card for first winner */}
-              <div className="relative group mb-5">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/40 to-primary-container/20 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
-                <div className="relative bg-surface-container-low border border-primary/30 rounded-2xl p-8 overflow-hidden">
-                  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-                    <div className="shimmer-btn absolute inset-0" />
-                  </div>
-                  <div className="grid md:grid-cols-[1fr_auto_220px] gap-8 items-center">
-                    <div className="flex items-center gap-6">
-                      <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center border-2 border-primary/40 shrink-0">
-                        <span
-                          className="material-symbols-outlined text-primary text-[38px]"
-                          style={{ fontVariationSettings: "'FILL' 1" }}
-                        >
-                          workspace_premium
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-bold text-primary tracking-[0.15em] uppercase mb-1">
-                          {grandWinners[0].tier.prize}
-                        </p>
-                        <h4
-                          className="text-[40px] font-extrabold text-on-surface"
-                          style={{ fontFamily: 'var(--font-sora)' }}
-                        >
-                          {grandWinners[0].participant.name}
-                        </h4>
-                        <p className="text-[15px] text-on-surface-variant mt-0.5">
-                          {grandWinners[0].participant.department}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="hidden md:block h-24 border-l-2 border-dashed border-outline-variant" />
-                    <div className="text-right md:text-center">
-                      <p className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">
-                        Ticket ID
-                      </p>
-                      <span
-                        className="text-[20px] font-extrabold text-primary bg-primary/10 px-4 py-2 rounded border border-primary/20 tracking-[0.1em]"
-                        style={{ fontFamily: 'var(--font-sora)' }}
-                      >
-                        {grandWinners[0].participant.ticketId}
-                      </span>
-                      <p className="mt-3 text-[11px] text-on-surface-variant uppercase tracking-wider">
-                        Drawn: {new Date(grandWinners[0].drawnAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              <div className="grid md:grid-cols-2 gap-5">
+                {grandWinners.map(w => <WinnerCard key={w.participant.ticketId} winner={w} />)}
               </div>
-
-              {/* Additional grand prize winners */}
-              {grandWinners.length > 1 && (
-                <div className="grid md:grid-cols-2 gap-5">
-                  {grandWinners.slice(1).map(w => <WinnerCard key={w.participant.ticketId} winner={w} />)}
-                </div>
-              )}
             </section>
           )}
 

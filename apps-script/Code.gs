@@ -2,7 +2,7 @@
 // Deploy as: Web App | Execute as: Me | Who has access: Anyone
 //
 // Replace this value before deploying:
-var SHEET_ID = 'YOUR_GOOGLE_SHEET_ID_HERE';
+var SHEET_ID = '1HZKo3pipY0u6tASv5fM3SHi8rsL7NLi3THE1ERTTHVM';
 
 var DRAWS_SHEET   = 'Draws';
 var WINNERS_SHEET = 'Winners';

@@ -14,7 +14,7 @@ export default function ResultsPage() {
   const [saved,       setSaved]       = useState(false)
   const [saveError,   setSaveError]   = useState('')
   const [pendingNav,  setPendingNav]  = useState<string>('/')
-  const origPushState = useRef<typeof window.history.pushState | null>(null)
+  const guardActive = useRef(false)
 
   useEffect(() => {
     const r = loadDrawResult()
@@ -35,33 +35,32 @@ export default function ResultsPage() {
   useEffect(() => {
     if (saved || !hasSheetConnection()) return
 
-    origPushState.current = window.history.pushState.bind(window.history)
+    guardActive.current = true
 
-    window.history.pushState = function(data: unknown, unused: string, url?: string | URL | null) {
-      const target = (url ?? '').toString()
-      if (!target.includes('/results')) {
-        setPendingNav(target || '/')
+    const handleClick = (e: MouseEvent) => {
+      if (!guardActive.current) return
+      const link = (e.target as HTMLElement).closest('a[href]')
+      if (!link) return
+      const href = link.getAttribute('href') ?? '/'
+      if (!href.includes('/results')) {
+        e.preventDefault()
+        e.stopImmediatePropagation()
+        setPendingNav(href)
         setShowModal(true)
-        return
       }
-      origPushState.current!(data, unused, url)
     }
 
     const onBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
+
+    document.addEventListener('click', handleClick, true)
     window.addEventListener('beforeunload', onBeforeUnload)
 
     return () => {
-      if (origPushState.current) window.history.pushState = origPushState.current
+      guardActive.current = false
+      document.removeEventListener('click', handleClick, true)
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
   }, [saved])
-
-  function releaseGuard() {
-    if (origPushState.current) {
-      window.history.pushState = origPushState.current
-      origPushState.current = null
-    }
-  }
 
   /* ── CSV Export ──────────────────────────────────────── */
   function exportCSV() {
@@ -90,7 +89,7 @@ export default function ResultsPage() {
       await saveDrawToSheets(result)
       setSaved(true)
       setShowModal(false)
-      releaseGuard()
+      guardActive.current = false
       clearSession()
       router.push(pendingNav)
     } catch (e) {
@@ -293,7 +292,7 @@ export default function ResultsPage() {
               )}
               <div className="flex gap-3 w-full mt-2">
                 <button
-                  onClick={() => { releaseGuard(); clearSession(); router.push(pendingNav) }}
+                  onClick={() => { guardActive.current = false; clearSession(); router.push(pendingNav) }}
                   className="flex-1 py-3 rounded-xl border border-outline-variant text-on-surface-variant text-[13px] font-bold uppercase tracking-wider hover:border-error/50 hover:text-error transition-colors"
                 >
                   Discard

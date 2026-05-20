@@ -18,8 +18,6 @@ export default function ResultsPage() {
     const r = loadDrawResult()
     if (!r) { router.replace('/'); return }
     setResult(r)
-    if (hasSheetConnection()) setShowModal(true)
-
     /* Confetti */
     ;(async () => {
       const confetti = (await import('canvas-confetti')).default
@@ -227,7 +225,14 @@ export default function ResultsPage() {
             </code>
           </p>
           <button
-            onClick={() => { clearSession(); router.push('/') }}
+            onClick={() => {
+              if (hasSheetConnection() && !saved) {
+                setShowModal(true)
+              } else {
+                clearSession()
+                router.push('/')
+              }
+            }}
             className="flex items-center gap-2 text-primary text-[13px] font-semibold hover:underline"
           >
             <span className="material-symbols-outlined text-[18px]">add_circle</span>
@@ -259,7 +264,7 @@ export default function ResultsPage() {
               )}
               <div className="flex gap-3 w-full mt-2">
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => { clearSession(); router.push('/') }}
                   className="flex-1 py-3 rounded-xl border border-outline-variant text-on-surface-variant text-[13px] font-bold uppercase tracking-wider hover:border-error/50 hover:text-error transition-colors"
                 >
                   Discard

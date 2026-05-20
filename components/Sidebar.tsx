@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 const navItems = [
   { href: '/',        icon: 'add_circle', label: 'New Draw'     },
@@ -11,7 +11,6 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
-  const router   = useRouter()
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href)
@@ -53,17 +52,6 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-
-      {/* Launch CTA */}
-      <div className="px-5 mb-6">
-        <button
-          onClick={() => router.push('/')}
-          className="relative w-full py-3.5 bg-primary text-on-primary rounded-lg font-bold text-[13px] uppercase tracking-widest overflow-hidden hover:shadow-[0_0_24px_rgba(237,192,101,0.3)] transition-shadow active:scale-95"
-        >
-          <span className="shimmer-btn absolute inset-0 opacity-60" />
-          <span className="relative z-10">Launch Raffle</span>
-        </button>
-      </div>
 
       {/* Footer links */}
       <div className="px-2 border-t border-outline-variant/30 pt-4 space-y-0.5">

@@ -42,22 +42,23 @@ export default function ResultsPage() {
       const link = (e.target as HTMLElement).closest('a[href]')
       if (!link) return
       const href = link.getAttribute('href') ?? '/'
-      if (!href.includes('/results')) {
-        e.preventDefault()
-        e.stopImmediatePropagation()
-        setPendingNav(href)
-        setShowModal(true)
-      }
+      // Ignore blob: URLs (CSV export) and links within /results
+      if (href.startsWith('blob:') || href.includes('/results')) return
+      e.preventDefault()
+      e.stopImmediatePropagation()
+      setPendingNav(href)
+      setShowModal(true)
     }
 
     const onBeforeUnload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = '' }
 
-    document.addEventListener('click', handleClick, true)
+    // Use window (highest level) to catch events before any other listener
+    window.addEventListener('click', handleClick, true)
     window.addEventListener('beforeunload', onBeforeUnload)
 
     return () => {
       guardActive.current = false
-      document.removeEventListener('click', handleClick, true)
+      window.removeEventListener('click', handleClick, true)
       window.removeEventListener('beforeunload', onBeforeUnload)
     }
   }, [saved])
@@ -260,7 +261,15 @@ export default function ResultsPage() {
             </code>
           </p>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => {
+              if (!saved && hasSheetConnection()) {
+                setPendingNav('/')
+                setShowModal(true)
+              } else {
+                clearSession()
+                router.push('/')
+              }
+            }}
             className="flex items-center gap-2 text-primary text-[13px] font-semibold hover:underline"
           >
             <span className="material-symbols-outlined text-[18px]">add_circle</span>

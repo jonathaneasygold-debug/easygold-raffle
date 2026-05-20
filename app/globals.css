@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@theme {
+  /* Gold / Primary palette */
+  --color-primary: #ffd685;
+  --color-primary-container: #e5b95f;
+  --color-primary-fixed: #ffdea2;
+  --color-primary-fixed-dim: #edc065;
+  --color-on-primary: #402d00;
+  --color-on-primary-container: #654900;
+  --color-on-primary-fixed: #261900;
+  --color-on-primary-fixed-variant: #5c4200;
+  --color-inverse-primary: #7a5900;
+
+  /* Secondary palette */
+  --color-secondary: #c8c6c5;
+  --color-secondary-container: #474746;
+  --color-on-secondary: #303030;
+  --color-on-secondary-container: #b7b5b4;
+
+  /* Tertiary */
+  --color-tertiary: #dddbda;
+  --color-tertiary-container: #c1bfbe;
+  --color-on-tertiary: #313030;
+  --color-on-tertiary-container: #4e4e4d;
+
+  /* Surface layers */
+  --color-surface: #131313;
+  --color-surface-dim: #131313;
+  --color-surface-bright: #3a3939;
+  --color-surface-container-lowest: #0e0e0e;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container: #201f1f;
+  --color-surface-container-high: #2a2a2a;
+  --color-surface-container-highest: #353534;
+  --color-surface-variant: #353534;
+  --color-surface-tint: #edc065;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #d1c5b2;
+  --color-inverse-surface: #e5e2e1;
+  --color-inverse-on-surface: #313030;
+
+  /* Background */
+  --color-background: #131313;
+  --color-on-background: #e5e2e1;
+
+  /* Borders */
+  --color-outline: #9a8f7e;
+  --color-outline-variant: #4e4637;
+
+  /* Error */
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  /* Custom fonts — referencing the CSS vars set by next/font */
+  --font-sora: var(--font-sora-var), sans-serif;
+  --font-hanken: var(--font-hanken-var), sans-serif;
+}
+
+/* ─── Base ─────────────────────────────────────────────────── */
+body {
+  background-color: #0d0d0d;
+  color: #e5e2e1;
+  font-family: var(--font-hanken), 'Hanken Grotesk', sans-serif;
+}
+
+/* Material Symbols defaults */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+  user-select: none;
+}
+
+/* ─── Animations ────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulse-gold {
+  0%   { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0    rgba(255,214,133,0.4); }
+  70%  { transform: scale(1);    opacity: 1;   box-shadow: 0 0 0 40px rgba(255,214,133,0); }
+  100% { transform: scale(0.95); opacity: 0.5; box-shadow: 0 0 0 0    rgba(255,214,133,0); }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Utility classes ───────────────────────────────────────── */
+.shimmer-btn {
+  background: linear-gradient(
+    90deg,
+    rgba(255,214,133,0)   0%,
+    rgba(255,214,133,0.25) 50%,
+    rgba(255,214,133,0)   100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite linear;
+}
+
+.pulse-gold {
+  animation: pulse-gold 3s infinite ease-in-out;
+}
+
+.glass-card {
+  background: rgba(26,26,26,0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,214,133,0.1);
+}
+
+.ticket-scan-row {
+  animation: fadeInDown 0.35s ease-out;
+}
+
+.perforation {
+  background-image: radial-gradient(circle, #4e4637 1px, transparent 1px);
+  background-size: 1px 12px;
+  width: 1px;
+  align-self: stretch;
+}

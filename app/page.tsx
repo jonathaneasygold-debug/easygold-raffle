@@ -354,10 +354,9 @@ function TierCard({
           <input
             type="number"
             min={0}
-            value={tier.winners}
+            value={tier.winners || ''}
             onChange={e => {
               const v = parseInt(e.target.value) || 0
-              if (v <= 0) { onRemove(); return }
               onUpdate('winners', v)
             }}
             className={`bg-transparent p-0 font-extrabold text-primary focus:ring-0 w-28 text-center outline-none border-none ${
@@ -377,7 +376,7 @@ function TierCard({
             <span className="material-symbols-outlined text-[16px]">keyboard_arrow_up</span>
           </button>
           <button
-            onClick={() => tier.winners <= 1 ? onRemove() : onUpdate('winners', tier.winners - 1)}
+            onClick={() => onUpdate('winners', Math.max(0, tier.winners - 1))}
             className="p-1.5 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors"
           >
             <span className="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>

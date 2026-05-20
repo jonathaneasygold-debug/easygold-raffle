@@ -69,7 +69,8 @@ export default function ResultsPage() {
   for (const w of result.winners) {
     ;(byTier[w.tier.id] ??= []).push(w)
   }
-  const grandWinner = result.winners[0]
+  const grandTierId  = result.tiers[0]?.id
+  const grandWinners = grandTierId ? (byTier[grandTierId] ?? []) : []
 
   return (
     <div className="min-h-screen">
@@ -134,7 +135,7 @@ export default function ResultsPage() {
 
         <div className="space-y-16">
           {/* Grand Prize */}
-          {grandWinner && (
+          {grandWinners.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-7">
                 <span
@@ -147,11 +148,17 @@ export default function ResultsPage() {
                   className="text-[28px] font-bold text-on-surface"
                   style={{ fontFamily: 'var(--font-sora)' }}
                 >
-                  Grand Prize Winner
+                  Grand Prize {grandWinners.length === 1 ? 'Winner' : 'Winners'}
                 </h3>
+                {grandWinners.length > 1 && (
+                  <span className="ml-2 px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-[12px] font-bold border border-primary/20">
+                    {grandWinners.length}
+                  </span>
+                )}
               </div>
 
-              <div className="relative group">
+              {/* Hero card for first winner */}
+              <div className="relative group mb-5">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/40 to-primary-container/20 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000" />
                 <div className="relative bg-surface-container-low border border-primary/30 rounded-2xl p-8 overflow-hidden">
                   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
@@ -169,16 +176,16 @@ export default function ResultsPage() {
                       </div>
                       <div>
                         <p className="text-[11px] font-bold text-primary tracking-[0.15em] uppercase mb-1">
-                          {grandWinner.tier.prize}
+                          {grandWinners[0].tier.prize}
                         </p>
                         <h4
                           className="text-[40px] font-extrabold text-on-surface"
                           style={{ fontFamily: 'var(--font-sora)' }}
                         >
-                          {grandWinner.participant.name}
+                          {grandWinners[0].participant.name}
                         </h4>
                         <p className="text-[15px] text-on-surface-variant mt-0.5">
-                          {grandWinner.participant.department}
+                          {grandWinners[0].participant.department}
                         </p>
                       </div>
                     </div>
@@ -191,15 +198,22 @@ export default function ResultsPage() {
                         className="text-[20px] font-extrabold text-primary bg-primary/10 px-4 py-2 rounded border border-primary/20 tracking-[0.1em]"
                         style={{ fontFamily: 'var(--font-sora)' }}
                       >
-                        {grandWinner.participant.ticketId}
+                        {grandWinners[0].participant.ticketId}
                       </span>
                       <p className="mt-3 text-[11px] text-on-surface-variant uppercase tracking-wider">
-                        Drawn: {new Date(grandWinner.drawnAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        Drawn: {new Date(grandWinners[0].drawnAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* Additional grand prize winners */}
+              {grandWinners.length > 1 && (
+                <div className="grid md:grid-cols-2 gap-5">
+                  {grandWinners.slice(1).map(w => <WinnerCard key={w.participant.ticketId} winner={w} />)}
+                </div>
+              )}
             </section>
           )}
 

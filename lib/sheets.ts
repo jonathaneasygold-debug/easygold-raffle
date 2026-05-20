@@ -1,6 +1,8 @@
 import type { DrawResult, HistoricalDraw } from '@/app/types'
 
-const URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_URL
+const URL =
+  process.env.NEXT_PUBLIC_APPS_SCRIPT_URL ||
+  'https://script.google.com/macros/s/AKfycbyTb4ofWovg7nlXj50uDdCxj3hoDpHhppOm2Z8x37WihBJYZKYr_zvQ-o-hCeKGzVwF/exec'
 
 export function hasSheetConnection(): boolean {
   return Boolean(URL)

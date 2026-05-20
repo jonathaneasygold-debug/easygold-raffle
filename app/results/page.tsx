@@ -8,15 +8,17 @@ import type { DrawResult, Winner } from '@/app/types'
 
 export default function ResultsPage() {
   const router = useRouter()
-  const [result,    setResult]    = useState<DrawResult | null>(null)
-  const [saving,    setSaving]    = useState(false)
-  const [saved,     setSaved]     = useState(false)
-  const [saveError, setSaveError] = useState('')
+  const [result,      setResult]      = useState<DrawResult | null>(null)
+  const [showModal,   setShowModal]   = useState(false)
+  const [saving,      setSaving]      = useState(false)
+  const [saved,       setSaved]       = useState(false)
+  const [saveError,   setSaveError]   = useState('')
 
   useEffect(() => {
     const r = loadDrawResult()
     if (!r) { router.replace('/'); return }
     setResult(r)
+    if (hasSheetConnection()) setShowModal(true)
 
     /* Confetti */
     ;(async () => {
@@ -55,6 +57,7 @@ export default function ResultsPage() {
     try {
       await saveDrawToSheets(result)
       setSaved(true)
+      setShowModal(false)
     } catch (e) {
       setSaveError((e as Error).message)
     } finally {
@@ -91,16 +94,6 @@ export default function ResultsPage() {
             Export CSV
           </button>
 
-          {hasSheetConnection() && !saved && (
-            <button
-              onClick={saveToSheets}
-              disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary/20 border border-primary/30 rounded-lg text-[13px] font-semibold text-primary hover:bg-primary/30 transition-colors disabled:opacity-60"
-            >
-              <span className="material-symbols-outlined text-[18px]">{saving ? 'hourglass_empty' : 'cloud_upload'}</span>
-              {saving ? 'Saving…' : 'Save to Sheets'}
-            </button>
-          )}
           {saved && (
             <span className="flex items-center gap-1.5 text-[13px] font-semibold text-primary">
               <span className="material-symbols-outlined text-[18px]">check_circle</span>
@@ -242,6 +235,47 @@ export default function ResultsPage() {
           </button>
         </footer>
       </main>
+
+      {/* Save / Discard modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="relative bg-surface-container-low border border-outline-variant rounded-2xl p-10 max-w-md w-full mx-4 shadow-2xl">
+            <div className="flex flex-col items-center text-center gap-5">
+              <div className="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  cloud_upload
+                </span>
+              </div>
+              <div>
+                <h3 className="text-[22px] font-bold text-on-surface mb-2" style={{ fontFamily: 'var(--font-sora)' }}>
+                  Save Draw Results?
+                </h3>
+                <p className="text-[14px] text-on-surface-variant">
+                  Save this draw to Google Sheets for permanent record-keeping, or discard it to keep results session-only.
+                </p>
+              </div>
+              {saveError && (
+                <p className="text-error text-[13px] w-full text-left">{saveError}</p>
+              )}
+              <div className="flex gap-3 w-full mt-2">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 py-3 rounded-xl border border-outline-variant text-on-surface-variant text-[13px] font-bold uppercase tracking-wider hover:border-error/50 hover:text-error transition-colors"
+                >
+                  Discard
+                </button>
+                <button
+                  onClick={saveToSheets}
+                  disabled={saving}
+                  className="flex-1 py-3 rounded-xl bg-primary text-on-primary text-[13px] font-bold uppercase tracking-wider hover:opacity-90 transition-opacity disabled:opacity-60"
+                >
+                  {saving ? 'Saving…' : 'Save to Sheets'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

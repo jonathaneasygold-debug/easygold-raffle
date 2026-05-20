@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fetchDrawHistory, hasSheetConnection } from '@/lib/sheets'
 import type { HistoricalDraw, Winner } from '@/app/types'
 
@@ -158,10 +158,16 @@ function DrawRow({
   isExpanded: boolean
   onToggle: () => void
 }) {
+  const [activeTier, setActiveTier] = useState<string | null>(null)
+
   const byTier: Record<string, Winner[]> = {}
   for (const w of draw.winners ?? []) {
     ;(byTier[w.tier.id] ??= []).push(w)
   }
+
+  const visibleWinners = activeTier
+    ? (byTier[activeTier] ?? [])
+    : (draw.winners ?? [])
 
   return (
     <div
@@ -226,7 +232,7 @@ function DrawRow({
       {/* Expandable tickets grid */}
       {isExpanded && (
         <div className="border-t border-outline-variant bg-surface-container-low p-7">
-          {/* Tier badges */}
+          {/* Tier filter buttons */}
           <div className="mb-5 flex flex-wrap gap-3 items-center">
             <h4
               className="text-[17px] font-semibold text-primary-fixed-dim mr-2"
@@ -234,15 +240,33 @@ function DrawRow({
             >
               Winning Tickets
             </h4>
+            <button
+              onClick={() => setActiveTier(null)}
+              className={`px-3 py-1 rounded border text-[12px] font-semibold transition-colors ${
+                activeTier === null
+                  ? 'bg-primary text-on-primary border-primary'
+                  : 'bg-surface-container border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
+              }`}
+            >
+              All: {(draw.winners ?? []).length}
+            </button>
             {(draw.tiers ?? []).map(t => (
-              <span key={t.id} className="px-3 py-1 bg-surface-container rounded border border-outline-variant text-[12px] font-semibold text-on-surface-variant">
+              <button
+                key={t.id}
+                onClick={() => setActiveTier(activeTier === t.id ? null : t.id)}
+                className={`px-3 py-1 rounded border text-[12px] font-semibold transition-colors ${
+                  activeTier === t.id
+                    ? 'bg-primary text-on-primary border-primary'
+                    : 'bg-surface-container border-outline-variant text-on-surface-variant hover:border-primary hover:text-primary'
+                }`}
+              >
                 {t.name}: {(byTier[t.id] ?? []).length}
-              </span>
+              </button>
             ))}
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {(draw.winners ?? []).map((w, i) => (
+            {visibleWinners.map((w, i) => (
               <TicketCard key={`${w.participant.ticketId}-${i}`} winner={w} />
             ))}
           </div>

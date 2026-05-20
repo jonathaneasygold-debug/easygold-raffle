@@ -194,7 +194,7 @@ export default function ResultsPage() {
                     <table className="w-full text-left">
                       <thead className="bg-surface-container border-b border-outline-variant/30">
                         <tr>
-                          {['Name', 'Department', 'Ticket ID', 'Prize'].map(h => (
+                          {['Name', 'Ticket ID', 'Prize'].map(h => (
                             <th key={h} className="px-7 py-4 text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">
                               {h}
                             </th>
@@ -205,7 +205,6 @@ export default function ResultsPage() {
                         {tierWinners.map(w => (
                           <tr key={w.participant.ticketId} className="hover:bg-surface-container transition-colors">
                             <td className="px-7 py-4 text-[15px] text-on-surface">{w.participant.name}</td>
-                            <td className="px-7 py-4 text-[15px] text-on-surface-variant">{w.participant.department}</td>
                             <td className="px-7 py-4">
                               <span
                                 className="text-[13px] font-extrabold text-primary tracking-[0.1em]"
@@ -259,7 +258,6 @@ function WinnerCard({ winner }: { winner: Winner }) {
           >
             {winner.participant.name}
           </h4>
-          <p className="text-[14px] text-on-surface-variant mt-0.5">{winner.participant.department}</p>
         </div>
         <div className="text-right">
           <span

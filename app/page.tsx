@@ -9,16 +9,17 @@ import { saveDrawConfig } from '@/lib/storage'
 const TIER_LABELS = ['Grand Prize', 'Gold Tier', 'Silver Tier', 'Bronze Tier', 'Special Prize']
 
 const DEFAULT_TIERS: Tier[] = [
-  { id: '1', number: '#01', name: 'Grand Prize', prize: 'Premium Luxury Retreat Package',     winners: 1  },
-  { id: '2', number: '#02', name: 'Gold Tier',   prize: 'Custom Tech Set: Ultra-OLED Edition', winners: 5  },
-  { id: '3', number: '#03', name: 'Silver Tier', prize: 'Executive Experience Voucher',        winners: 10 },
+  { id: '1', number: '#01', name: '', prize: '', winners: 1  },
+  { id: '2', number: '#02', name: '', prize: '', winners: 5  },
+  { id: '3', number: '#03', name: '', prize: '', winners: 10 },
 ]
 
 export default function SetupPage() {
-  const router       = useRouter()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const router        = useRouter()
+  const fileInputRef  = useRef<HTMLInputElement>(null)
+  const drawNameRef   = useRef<HTMLInputElement>(null)
 
-  const [drawName,     setDrawName]     = useState('Q4 Performance Incentives — Gold Tier')
+  const [drawName,     setDrawName]     = useState('')
   const [tiers,        setTiers]        = useState<Tier[]>(DEFAULT_TIERS)
   const [participants, setParticipants] = useState<Participant[]>([])
   const [fileName,     setFileName]     = useState('')
@@ -143,14 +144,19 @@ export default function SetupPage() {
           </label>
           <div className="relative">
             <input
+              ref={drawNameRef}
               value={drawName}
               onChange={e => setDrawName(e.target.value)}
               placeholder="e.g. Annual Excellence Awards 2025"
-              className="w-full bg-[#1a1a1a] border border-outline-variant text-on-surface px-6 py-5 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-[17px]"
+              className="w-full bg-[#1a1a1a] border border-outline-variant text-on-surface px-6 py-5 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-[17px] pr-12"
             />
-            <span className="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-40">
-              edit
-            </span>
+            <button
+              type="button"
+              onClick={() => drawNameRef.current?.focus()}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-40 hover:opacity-100 hover:text-primary transition-all"
+            >
+              <span className="material-symbols-outlined text-[20px]">edit</span>
+            </button>
           </div>
         </section>
 
@@ -350,7 +356,9 @@ function TierCard({
             min={1}
             value={tier.winners}
             onChange={e => onUpdate('winners', Math.max(1, parseInt(e.target.value) || 1))}
-            className="bg-transparent p-0 text-[44px] font-extrabold text-primary focus:ring-0 w-14 text-center outline-none border-none"
+            className={`bg-transparent p-0 font-extrabold text-primary focus:ring-0 w-28 text-center outline-none border-none ${
+              tier.winners >= 1000 ? 'text-[28px]' : tier.winners >= 100 ? 'text-[36px]' : 'text-[44px]'
+            }`}
             style={{ fontFamily: 'var(--font-sora)' }}
           />
           <span className="text-[12px] font-semibold text-on-surface-variant uppercase">

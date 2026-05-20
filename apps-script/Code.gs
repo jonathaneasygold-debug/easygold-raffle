@@ -18,7 +18,7 @@ function doGet(e) {
 
     // Attach winners to each draw
     var result = draws.map(function(draw) {
-      draw.winners = winners.filter(function(w) { return w.drawId === draw.id; });
+      draw.winners = winners.filter(function(w) { return w.drawId === draw.drawName; });
       return draw;
     });
 
@@ -58,7 +58,7 @@ function ensureSheets() {
 
   if (!ss.getSheetByName(WINNERS_SHEET)) {
     var s2 = ss.insertSheet(WINNERS_SHEET);
-    s2.appendRow(['drawId', 'tierId', 'tierName', 'tierPrize', 'winnerName', 'winnerDept', 'ticketId', 'drawnAt']);
+    s2.appendRow(['drawName', 'tierId', 'tierName', 'tierPrize', 'winnerName', 'winnerDept', 'ticketId', 'drawnAt']);
   }
 }
 
@@ -80,7 +80,7 @@ function saveWinners(data) {
   var sheet = ss.getSheetByName(WINNERS_SHEET);
   (data.winners || []).forEach(function(w) {
     sheet.appendRow([
-      data.id,
+      data.drawName,
       w.tier.id,
       w.tier.name,
       w.tier.prize,

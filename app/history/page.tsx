@@ -1,18 +1,35 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { fetchDrawHistory, hasSheetConnection } from '@/lib/sheets'
 import type { HistoricalDraw, Winner } from '@/app/types'
 
 export default function HistoryPage() {
-  const [draws,     setDraws]     = useState<HistoricalDraw[]>([])
-  const [loading,   setLoading]   = useState(true)
-  const [error,     setError]     = useState('')
-  const [expanded,  setExpanded]  = useState<Record<string, boolean>>({})
-  const [page,      setPage]      = useState(1)
+  const [draws,      setDraws]      = useState<HistoricalDraw[]>([])
+  const [loading,    setLoading]    = useState(true)
+  const [error,      setError]      = useState('')
+  const [expanded,   setExpanded]   = useState<Record<string, boolean>>({})
+  const [page,       setPage]       = useState(1)
+  const [crossedOut, setCrossedOut] = useState<Set<string>>(new Set())
   const PER_PAGE = 5
 
   const hasSheets = hasSheetConnection()
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('eg_crossed_tickets')
+      if (raw) setCrossedOut(new Set(JSON.parse(raw) as string[]))
+    } catch {}
+  }, [])
+
+  function toggleCross(key: string) {
+    setCrossedOut(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key); else next.add(key)
+      localStorage.setItem('eg_crossed_tickets', JSON.stringify([...next]))
+      return next
+    })
+  }
 
   useEffect(() => {
     if (!hasSheets) { setLoading(false); return }
@@ -102,6 +119,8 @@ export default function HistoryPage() {
                 isFirst={i === 0}
                 isExpanded={Boolean(expanded[draw.id])}
                 onToggle={() => toggleExpand(draw.id)}
+                crossedOut={crossedOut}
+                onToggleCross={toggleCross}
               />
             ))}
           </div>
@@ -152,11 +171,15 @@ function DrawRow({
   isFirst,
   isExpanded,
   onToggle,
+  crossedOut,
+  onToggleCross,
 }: {
   draw: HistoricalDraw
   isFirst: boolean
   isExpanded: boolean
   onToggle: () => void
+  crossedOut: Set<string>
+  onToggleCross: (key: string) => void
 }) {
   const [activeTier, setActiveTier] = useState<string | null>(null)
 
@@ -266,9 +289,17 @@ function DrawRow({
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-            {visibleWinners.map((w, i) => (
-              <TicketCard key={`${w.participant.ticketId}-${i}`} winner={w} />
-            ))}
+            {visibleWinners.map((w, i) => {
+              const crossKey = `${draw.id}-${w.participant.ticketId}`
+              return (
+                <TicketCard
+                  key={`${w.participant.ticketId}-${i}`}
+                  winner={w}
+                  isDeleted={crossedOut.has(crossKey)}
+                  onDelete={() => onToggleCross(crossKey)}
+                />
+              )
+            })}
           </div>
         </div>
       )}
@@ -277,16 +308,27 @@ function DrawRow({
 }
 
 /* ── Ticket Card ─────────────────────────────────────────── */
-function TicketCard({ winner }: { winner: Winner }) {
+function TicketCard({ winner, isDeleted, onDelete }: { winner: Winner; isDeleted: boolean; onDelete: () => void }) {
   const isGrand = winner.tier.name?.toLowerCase().includes('grand')
   return (
     <div
-      className={`relative bg-surface p-5 rounded-lg overflow-hidden group/ticket border-2 ${
-        isGrand ? 'border-primary/30' : 'border-outline-variant'
+      className={`relative bg-surface p-5 rounded-lg overflow-hidden group/ticket border-2 transition-opacity ${
+        isDeleted ? 'opacity-40 border-outline-variant' : isGrand ? 'border-primary/30' : 'border-outline-variant'
       }`}
       style={{ maskImage: 'radial-gradient(circle at 0% 50%,transparent 10px,white 11px),radial-gradient(circle at 100% 50%,transparent 10px,white 11px)' }}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover/ticket:opacity-100 transition-opacity" />
+
+      {/* Delete / restore button */}
+      <button
+        onClick={onDelete}
+        title={isDeleted ? 'Restore ticket' : 'Mark as deleted'}
+        className="absolute top-2 right-2 z-10 opacity-0 group-hover/ticket:opacity-100 transition-opacity p-0.5 rounded hover:bg-surface-variant"
+      >
+        <span className={`material-symbols-outlined text-[16px] ${isDeleted ? 'text-primary' : 'text-error'}`}>
+          {isDeleted ? 'undo' : 'delete'}
+        </span>
+      </button>
 
       <div className="flex justify-between items-start mb-3">
         <span
@@ -299,7 +341,7 @@ function TicketCard({ winner }: { winner: Winner }) {
           {winner.tier.name}
         </span>
         <span
-          className={`text-[18px] font-extrabold tracking-[0.1em] ${isGrand ? 'text-primary' : 'text-on-surface-variant opacity-50'}`}
+          className={`text-[18px] font-extrabold tracking-[0.1em] ${isDeleted ? 'line-through text-on-surface-variant opacity-40' : isGrand ? 'text-primary' : 'text-on-surface-variant opacity-50'}`}
           style={{ fontFamily: 'var(--font-sora)' }}
         >
           {winner.participant.ticketId}
@@ -307,20 +349,22 @@ function TicketCard({ winner }: { winner: Winner }) {
       </div>
 
       <h5
-        className="text-[17px] font-semibold text-on-surface truncate mb-0.5"
+        className={`text-[17px] font-semibold truncate mb-0.5 ${isDeleted ? 'line-through text-on-surface-variant' : 'text-on-surface'}`}
         style={{ fontFamily: 'var(--font-sora)' }}
       >
         {winner.participant.name}
       </h5>
-      <p className="text-[13px] text-on-surface-variant opacity-60">{winner.participant.department}</p>
+      <p className={`text-[13px] opacity-60 ${isDeleted ? 'line-through text-on-surface-variant' : 'text-on-surface-variant'}`}>
+        {winner.participant.department}
+      </p>
 
       <div className="mt-3 pt-3 border-t border-dashed border-outline-variant flex justify-between items-center">
-        <span className={`text-[11px] uppercase font-bold ${isGrand ? 'text-primary/60' : 'text-on-surface-variant opacity-40'}`}>
+        <span className={`text-[11px] uppercase font-bold ${isGrand && !isDeleted ? 'text-primary/60' : 'text-on-surface-variant opacity-40'}`}>
           {winner.tier.prize}
         </span>
         <span
-          className={`material-symbols-outlined text-[18px] ${isGrand ? 'text-primary' : 'text-on-surface-variant opacity-40'}`}
-          style={isGrand ? { fontVariationSettings: "'FILL' 1" } : {}}
+          className={`material-symbols-outlined text-[18px] ${isGrand && !isDeleted ? 'text-primary' : 'text-on-surface-variant opacity-40'}`}
+          style={isGrand && !isDeleted ? { fontVariationSettings: "'FILL' 1" } : {}}
         >
           workspace_premium
         </span>
